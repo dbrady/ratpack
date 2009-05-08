@@ -11,19 +11,19 @@ def usage()
 end
 
 def barf(msg=nil, exit_status = 1)
-  puts "ERROR: #{msg}" unless msg
+  puts "ERROR: #{msg}" if msg
   usage
   exit exit_status
 end
 
-barf("app 'Expected 2 args, got #{ARGV.size}'") unless ARGV.size == 2
+barf "app 'Expected 2 args, got #{ARGV.size}'" unless ARGV.size == 2
 
 @app, @pidfile = *ARGV
 @pidfolder = File.dirname @pidfile
 
-# barf("Cannot find app file '#{@app}'") unless File.exists?(@app)
-# barf("Pidfile folder does not exist: '#{@pidfile}'") unless File.directory?(@pidfolder)
-# barf("Pidfile already exists at: '#{@pidfile}'") if File.exists?(@pidfile)
+barf "Cannot find app file '#{@app}'" unless File.exists? @app
+barf "Pidfile folder does not exist: '#{@pidfile}'" unless File.directory? @pidfolder
+barf "Pidfile already exists at: '#{@pidfile}'" if File.exists? @pidfile
 
 PID = $$
 
@@ -35,8 +35,11 @@ File.open(@pidfile, "w") do |file|
 end
 
 # run that sinatra app
-puts "Sinatra applet thingy goes here!"
-sleep 15
+begin
+  load @app
+  Sinatra::Application.run!
+ensure 
+  # clear PID
+  FileUtils.rm @pidfile
+end
 
-# clear PID
-FileUtils.rm @pidfile

@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+# David Brady - david.brady@leadmediapartners.com
+# 
+# Copyright (c) 2009 Lead Media Partners LLC
+# 
+# ratpack - Startup script for sinatra cluster
+# 
+# description: This little service handles starting and stopping
+# sinatra apps on the server.
+#  
+# How it works: In the config directory is a file for each app
+# containing the path to the application's startup file
+# 
+# When the ruby file is run, a PID file is created for it in the
+# PID_DIR.
+# 
+# This script is loosely based on the mongrel_cluster scripts written
+# by Bradley Taylor (bradley@railsmachine.com).
+
+CONF_DIR="/etc/ratpack"
+PID_DIR="/var/run/ratpack"
+
+def usage 
+    puts "ratpack <start|stop|restart>"
+end 
+
+def barf(msg=nil, exit_status = 1)
+  puts "ERROR: #{msg}" if msg
+  usage
+  exit exit_status
+end
+
+barf "Expected 1 argument, got #{ARGV.size}" unless ARGV.size 1
+barf "Config dir doesn't exist: #{CONF_DIR}" unless File.directory? CONF_DIR
+
+
+def start
+  FileUtils.mkdir_p PID_DIR
+  Dir.glob(File.join(CONF_DIR, "*.cfg")).each do |filename|
+    app_file = IO.read(filename)
+    pid_file = File.join(PID_DIR, File.basename(app_file), ".pid")
+    system "nohup ratpack_ctl #{app_file} #{pid_file}"
+  end
+end
+
+def stop
+  `pidof ratpack_ctl`.split.each do |pid|
+    system "kill #{pid}"
+  end
+end
+
+case ARGV.first.downcase
+when "start"
+  start
+when "stop"
+  stop
+when "restart"
+  stop
+  start
+end

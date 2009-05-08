@@ -1,6 +1,6 @@
-= sinatrad
+= ratpack
 
-Sinatra Daemon
+Sinatra Cluster Daemon
 
 A service for starting and stopping Sinatra as a service on linux
 boxen.
@@ -8,15 +8,59 @@ boxen.
 
 = Why?
 
-Because I need to control Sinatra on a box that has
-Apache+Rails+Mongrel, and I don't have access to thin, mod_passenger,
-or rack to automagically start my Sinatra apps.
+Because I need to control Sinatra on an Apache + Rails + Mongrel box,
+and I don't have access to thin, mod_passenger, or rack to start my
+Sinatra apps automagically.
+
+Essentially this service is meant to provide semiautomagic start and
+stop for mongrel + sinatra.
+
+
+= How?
+
+* Configure apache to use mod_proxy and forward requests to port 4567.
+* Start the ratpack_ctl service with +ratpack <app> <pid_folder>+
+
+
+
+= Known Issues
+
+== It's Not Actually, Uh, A Pack ==
+
+Currently ratpack only launches a single sinatra instance. It's built
+to be scaled up but currently isn't. Why? Because of IDNI, the evil
+twin of YAGNI: "I Didn't Need It".
+
+Here's what needs to happen for scaling:
+
+* Add a ratpack config file that tells it how many processes to
+  launch, and have it launch them each on a different port.
+* Add a passthrough to ratpack_ctl that will capture options and pass
+  them through to sinatra
+* Note that this changes the notion of Sinatra from a one-off app to a
+  server-wide app, and many folks want to have different sinatra apps
+  running. Care should be taken to not break this; you should be able,
+  for example, to spin up 2 instances of app1.rb and 4 of app2.rb.
 
 
 = TODO
 
-* Actually add payloads (exec @app)
-* Investigate daemon-kit
-* Investigate Kernel.open vs. IO.popen vs. system vs. etc
+== Investigate Internals ==
+
+Investigate Sinatra's internals. I'm currently using a mongrel
+backend, but Sinatra is actually designed to take specific options and
+directions here. I *think* this is what currently happens:
+
+* Apache is running
+* ratpack_ctl starts sinatra
+* sinatra starts a mongrel
+* Apache can now proxy to mongrel which forwards to sinatra
+
+If this is what's happening, then great; it's ideal. But I'm not sure.
+So I need to investigate.
 
 
+
+= License
+
+MIT. See MIT-LICENSE for details.
