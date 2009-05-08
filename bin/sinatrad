@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# David Brady - david.brady@leadmediapartners.com
+# 
+# Copyright (c) 2009 Lead Media Partners LLC
+# 
+# sinatra - Startup script for sinatra server
+# 
+# description: This little service handles starting and stopping
+# sinatra apps on the server.
+#  
+# How it works: In the config directory is a file for each app
+# containing the path to the application's startup file (which should
+# just be a ruby script that includes Sinatra--it doesn't do the
+# Sinatra::Application.run for you. It just runs your ruby
+# script. NOTE: This means that this script could probably be used to
+# daemonize arbitrary ruby scripts without modification....)
+# 
+# When the ruby file is run, a PID file is created for it in the
+# PID_DIR.
+# 
+# This script is loosely based on the mongrel_cluster script written
+# by Bradley Taylor (bradley@railsmachine.com).
+
+CONF_DIR=/etc/sinatra
+PID_DIR=/var/run/sinatra
+
+RETVAL=0
+
+
+if [ "$2x" == "x" ]; then
+    echo "sinatra <start|stop|restart> <app>"
+    exit 1
+fi
+
+# Check for config dir and app file in it
+if ! [ -d "$CONF_DIR" ]; then
+    echo "Hey! Config dir doesn't exist: $CONF_DIR"
+    exit 2
+fi
+
+if ! [ -e "$CONF_DIR/$2.cfg" ]; then
+    echo "Config file for app is missing: '$CONF_DIR/$2.cfg' does not exist"
+    exit 3
+fi
+
+exit 4
+
+case "$1" in
+    start)
+      # Create pid directory
+      mkdir -p $PID_DIR
+      
+      mongrel_cluster_ctl start -c $CONF_DIR
+      RETVAL=$?
+  ;;
+    stop)
+      mongrel_cluster_ctl stop -c $CONF_DIR
+      RETVAL=$?
+  ;;
+    restart)
+      mongrel_cluster_ctl restart -c $CONF_DIR
+      RETVAL=$?
+  ;;
+    status)
+      mongrel_cluster_ctl status -c $CONF_DIR
+      RETVAL=$?
+  ;;
+    *)
+      echo "Usage: mongrel_cluster {start|stop|restart|status}"
+      exit 1
+  ;;
+esac      
+
+exit $RETVAL

@@ -1,0 +1,22 @@
+= sinatrad
+
+Sinatra Daemon
+
+A service for starting and stopping Sinatra as a service on linux
+boxen.
+
+
+= Why?
+
+Because I need to control Sinatra on a box that has
+Apache+Rails+Mongrel, and I don't have access to thin, mod_passenger,
+or rack to automagically start my Sinatra apps.
+
+
+= TODO
+
+* Actually add payloads (exec @app)
+* Investigate daemon-kit
+* Investigate Kernel.open vs. IO.popen vs. system vs. etc
+
+

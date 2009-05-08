@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+#
+# sinatra_ctl - run a sinatra app, keeping track of pidfile.
+#
+# usage:
+#
+#   sinatra_ctl <app> <pidfile>
+
+def usage()
+  puts "sinatra_ctl <app> <pidfile>"
+end
+
+def barf(msg=nil, exit_status = 1)
+  puts "ERROR: #{msg}" unless msg
+  usage
+  exit exit_status
+end
+
+barf("app 'Expected 2 args, got #{ARGV.size}'") unless ARGV.size == 2
+
+@app, @pidfile = *ARGV
+@pidfolder = File.dirname @pidfile
+
+# barf("Cannot find app file '#{@app}'") unless File.exists?(@app)
+# barf("Pidfile folder does not exist: '#{@pidfile}'") unless File.directory?(@pidfolder)
+# barf("Pidfile already exists at: '#{@pidfile}'") if File.exists?(@pidfile)
+
+PID = $$
+
+puts "My PID is #{PID}"
+
+# record PID
+File.open(@pidfile, "w") do |file|
+  file.puts $$
+end
+
+# run that sinatra app
+puts "Sinatra applet thingy goes here!"
+sleep 15
+
+# clear PID
+FileUtils.rm @pidfile
